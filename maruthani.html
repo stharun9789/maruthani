@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Birthday Surprise</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+
+*{box-sizing:border-box;}
+body{margin:0;height:100vh;overflow:hidden;font-family:'Pacifico',cursive;background:#3e2b1f;transition:background 2s;}
+
+.page{
+  position:absolute;width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  transition:opacity 1s;
+}
+
+/* PAGE 1 */
+#page1{z-index:3;}
+.arrow{font-size:50px;color:white;position:absolute;bottom:5vh;cursor:grab;text-shadow:0 0 10px pink;}
+
+/* PAGE 2 */
+#page2{
+  display:none;
+  z-index:2;
+  background:#ffe6ee;
+  position:relative;
+  flex-direction:column;
+  justify-content:flex-start; /* align top */
+  padding-top:5vh;
+}
+
+/* Top center content */
+#topContent{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:20px;
+}
+
+#welcome{font-size:3rem;margin:0;}
+.toggle{
+  width:70px;height:35px;background:#ccc;border-radius:20px;position:relative;cursor:pointer;
+}
+.toggle::before{
+  content:''; width:30px; height:30px; background:white; border-radius:50%; position:absolute; top:2.5px; left:3px; transition:0.4s;
+}
+.toggle.on{background:#ff69b4;}
+.toggle.on::before{left:37px;}
+
+/* GIFT: bottom center */
+.gift{
+  display:none;
+  font-size:80px;
+  cursor:pointer;
+  animation:pulse 1.5s infinite;
+  position:absolute;
+  bottom:5vh;      /* distance from bottom */
+  left:47%;        /* center horizontally */
+  transform:translateX(-50%);
+}
+
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+
+/* PAGE 3 */
+#page3{display:none;z-index:1;}
+#message{
+  font-size:2.5rem;color:white;text-align:center;text-shadow:0 0 15px #ff4da6;z-index:5;
+}
+.heart-beat{
+  display:inline-block;margin-left:8px;animation:heartbeat 1.2s infinite;filter:drop-shadow(0 0 8px rgba(255,20,147,0.9));
+}
+@keyframes heartbeat{0%{transform:scale(1)}14%{transform:scale(1.35)}28%{transform:scale(1)}42%{transform:scale(1.25)}70%{transform:scale(1)}100%{transform:scale(1)}}
+
+.heart{position:absolute;width:14px;height:14px;background:red;clip-path:polygon(50% 0%,61% 15%,75% 15%,85% 25%,100% 40%,50% 100%,0% 40%,15% 25%,25% 15%,39% 15%);opacity:0.8;}
+.cube{position:absolute;width:10px;height:10%;}
+
+.scroll-container{position:absolute;bottom:20px;width:100%;overflow:hidden;white-space:nowrap;}
+.scroll-text{display:inline-block;padding-left:100%;font-size:1.3rem;color:#fff;text-shadow:0 0 10px #ff69b4;animation:scrollLeft 14s linear infinite;}
+@keyframes scrollLeft{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+</style>
+</head>
+<body>
+
+<!-- PAGE 1 -->
+<div class="page" id="page1"><div class="arrow" id="arrow">↑</div></div>
+
+<!-- PAGE 2 -->
+<div class="page" id="page2">
+  <div id="topContent">
+    <div id="welcome">Welcome 💖</div>
+    <div class="toggle" id="toggle"></div>
+  </div>
+  <div class="gift" id="gift">🎁</div>
+</div>
+
+<!-- PAGE 3 -->
+<div class="page" id="page3">
+  <div id="message">
+    Happy Birthday, my love Maruthani
+    <span class="heart-beat">💖</span><br>
+    Every beat of my heart belongs to you
+  </div>
+  <div class="scroll-container">
+    <div class="scroll-text">
+      With you beside me, nothing feels impossible ✨
+    </div>
+  </div>
+</div>
+
+<!-- MUSIC -->
+<audio id="music" loop preload="auto">
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7c1c6a1b0b.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+// AUDIO UNLOCK
+const music=document.getElementById("music");
+let audioUnlocked=false;
+function unlockAudio(){
+  if(audioUnlocked) return;
+  music.play().then(()=>{music.pause();music.currentTime=0;audioUnlocked=true;}).catch(()=>{});
+}
+document.addEventListener("click", unlockAudio, {once:true});
+document.addEventListener("touchstart", unlockAudio, {once:true});
+
+// PAGE 1 DRAG
+const arrow=document.getElementById("arrow");
+const page1=document.getElementById("page1");
+const page2=document.getElementById("page2");
+let startY,drag=false;
+function dragStart(y){drag=true;startY=y;}
+function dragMove(y){
+  if(!drag) return;
+  let move=(startY-y)/window.innerHeight*100;
+  arrow.style.bottom=Math.min(75,5+move)+"vh";
+  if(parseFloat(arrow.style.bottom)>=75){
+    page1.style.opacity=0;
+    setTimeout(()=>{page1.style.display="none"; page2.style.display="flex";},800);
+  }
+}
+function dragEnd(){drag=false;}
+
+// Desktop
+arrow.addEventListener("mousedown", e=>dragStart(e.clientY));
+document.addEventListener("mousemove", e=>dragMove(e.clientY));
+document.addEventListener("mouseup", dragEnd);
+
+// Mobile
+arrow.addEventListener("touchstart", e=>dragStart(e.touches[0].clientY));
+document.addEventListener("touchmove", e=>dragMove(e.touches[0].clientY));
+document.addEventListener("touchend", dragEnd);
+
+// PAGE 2 TOGGLE + GIFT
+const toggle=document.getElementById("toggle");
+const gift=document.getElementById("gift");
+
+toggle.onclick=()=>{
+  toggle.classList.toggle("on");
+  if(toggle.classList.contains("on")){
+    gift.style.display="block";
+    music.volume=0.6; music.play();
+  }else{
+    gift.style.display="none";
+    music.pause(); music.currentTime=0;
+  }
+};
+toggle.addEventListener("touchstart", ()=>toggle.click());
+
+gift.onclick=()=>{
+  page2.style.opacity=0;
+  setTimeout(()=>{
+    page2.style.display="none"; page3.style.display="flex";
+    document.body.style.background="#ffb6c1";
+    startHearts(); startCubes();
+  },800);
+};
+gift.addEventListener("touchstart", ()=>gift.click());
+
+// PAGE 3 EFFECTS
+function startHearts(){
+  setInterval(()=>{
+    const h=document.createElement("div");
+    h.className="heart";
+    h.style.left=Math.random()*window.innerWidth+"px";
+    h.style.top=window.innerHeight+"px";
+    document.body.appendChild(h);
+    h.animate([{transform:"translateY(0)",opacity:1},{transform:"translateY(-120vh)",opacity:0}],{duration:6000});
+    setTimeout(()=>h.remove(),6000);
+  },300);
+}
+
+function startCubes(){
+  setInterval(()=>{
+    const c=document.createElement("div");
+    c.className="cube";
+    c.style.left=Math.random()*window.innerWidth+"px";
+    c.style.top=window.innerHeight+"px";
+    c.style.background=`hsl(${Math.random()*360},80%,70%)`;
+    document.body.appendChild(c);
+    c.animate([{transform:"translateY(0) rotate(0deg)",opacity:1},{transform:"translateY(-120vh) rotate(360deg)",opacity:0}],{duration:5000});
+    setTimeout(()=>c.remove(),5000);
+  },200);
+}
+</script>
+
+</body>
+</html>
